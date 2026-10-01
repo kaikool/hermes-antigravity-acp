@@ -1,0 +1,40 @@
+name: validate
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Python syntax
+        shell: pwsh
+        run: |
+          python -m py_compile src/provider/antigravity/__init__.py
+          python -m py_compile src/provider/antigravity/native_acp_client.py
+          python -m py_compile src/account-manager/account_helper.py
+
+      - name: Desktop plugin syntax
+        shell: pwsh
+        run: node --check src/desktop-plugin/plugin.js
+
+      - name: Build release
+        shell: pwsh
+        run: ./scripts/build-release.ps1
+
+      - name: Verify no Python cache in release
+        shell: pwsh
+        run: |
+          $bad = Get-ChildItem dist -Recurse | Where-Object { $_.FullName -match '__pycache__|\.pyc$' }
+          if ($bad) { $bad | Format-Table; exit 1 }

@@ -1,0 +1,4 @@
+name: antigravity
+kind: model-provider
+version: 4.6.0
+description: Google Antigravity through the official Agent Client Protocol server.
